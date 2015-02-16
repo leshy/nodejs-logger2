@@ -53,7 +53,7 @@
       }
       logEntry = _.extend({}, {
         tags: tags,
-        msg: msg
+        message: msg
       }, data);
       return this.event(logEntry);
     }
@@ -65,25 +65,25 @@
       return this.startTime = new Date().getTime();
     },
     log: function(logEvent) {
-      return console.log(colors.green(new Date().getTime() - this.startTime) + "\t" + colors.yellow(new Date()) + " " + colors.green(logEvent.tags.join(', ')) + " " + logEvent.msg);
+      return console.log(colors.green(new Date().getTime() - this.startTime) + "\t" + colors.yellow(new Date()) + "\t\t" + colors.green(logEvent.tags.join(', ')) + "\t\t" + logEvent.message);
     }
   });
 
   Udp = exports.Udp = Backbone.Model.extend4000({
     name: 'udp',
     initialize: function(settings) {
-      if (settings == null) {
-        settings = {
-          host: 'localhost',
-          port: 6000
-        };
-      }
-      return this.gun = new UdpGun(settings.port, settings.host);
+      this.settings = settings != null ? settings : {
+        host: 'localhost',
+        port: 6000
+      };
+      this.gun = new UdpGun(this.settings.port, this.settings.host);
+      return this.hostname = os.hostname();
     },
     log: function(logEvent) {
-      return this.gun.send(new Buffer(JSON.stringify(_.extend({}, settings.extendPacket || {
-        type: 'node'
-      }, logEvent))));
+      return this.gun.send(new Buffer(JSON.stringify(_.extend({
+        type: 'nodelogger',
+        host: this.hostname
+      }, this.settings.extendPacket || {}, logEvent))));
     }
   });
 
