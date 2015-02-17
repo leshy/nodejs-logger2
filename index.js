@@ -64,10 +64,22 @@
     initialize: function() {
       return this.startTime = process.hrtime()[0];
     },
+    parseTags: function(tags) {
+      return _.map(tags, function(tag) {
+        if (tag === 'fail' || tag === 'error') {
+          return colors.red(tag);
+        }
+        if (tag === 'pass' || tag === 'ok') {
+          return colors.green(tag);
+        }
+        return colors.yellow(tag);
+      });
+    },
     log: function(logEvent) {
-      var hrtime;
+      var hrtime, tags;
       hrtime = process.hrtime();
-      return console.log(colors.green("" + (hrtime[0] - this.startTime) + "." + hrtime[1]) + "\t" + colors.yellow(new Date()) + "\t\t" + colors.green(logEvent.tags.join(', ')) + "\t\t" + logEvent.message);
+      tags = this.parseTags(logEvent.tags);
+      return console.log(colors.grey(new Date()) + "\t" + colors.green("" + (hrtime[0] - this.startTime) + "." + hrtime[1]) + "\t " + tags.join(', ') + "\t⋅\t" + logEvent.message);
     }
   });
 

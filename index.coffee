@@ -34,9 +34,16 @@ Logger = exports.Logger = subscriptionMan.basic.extend4000
 Console = exports.Console = Backbone.Model.extend4000
     name: 'console'
     initialize: -> @startTime = process.hrtime()[0]
+    parseTags: (tags) ->
+        _.map tags, (tag) ->
+            if tag is 'fail' or tag is 'error' then return colors.red tag
+            if tag is 'pass' or tag is 'ok' then return colors.green tag                
+            return colors.yellow tag
     log: (logEvent) ->
         hrtime = process.hrtime()
-        console.log colors.green("#{hrtime[0]  - @startTime}.#{hrtime[1]}") + "\t" + colors.yellow(new Date()) + "\t\t" + colors.green(logEvent.tags.join(', ')) + "\t\t" + logEvent.message        
+        tags = @parseTags logEvent.tags
+        console.log colors.grey(new Date()) + "\t" + colors.green("#{hrtime[0]  - @startTime}.#{hrtime[1]}") + "\t " + tags.join(', ') + "\t⋅\t" + logEvent.message        
+
 
 Udp = exports.Udp = Backbone.Model.extend4000
     name: 'udp'
