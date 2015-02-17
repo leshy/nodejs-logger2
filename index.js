@@ -62,10 +62,12 @@
   Console = exports.Console = Backbone.Model.extend4000({
     name: 'console',
     initialize: function() {
-      return this.startTime = new Date().getTime();
+      return this.startTime = process.hrtime()[0];
     },
     log: function(logEvent) {
-      return console.log(colors.green(new Date().getTime() - this.startTime) + "\t" + colors.yellow(new Date()) + "\t\t" + colors.green(logEvent.tags.join(', ')) + "\t\t" + logEvent.message);
+      var hrtime;
+      hrtime = process.hrtime();
+      return console.log(colors.green("" + (hrtime[0] - this.startTime) + "." + hrtime[1]) + "\t" + colors.yellow(new Date()) + "\t\t" + colors.green(logEvent.tags.join(', ')) + "\t\t" + logEvent.message);
     }
   });
 

@@ -33,10 +33,10 @@ Logger = exports.Logger = subscriptionMan.basic.extend4000
 
 Console = exports.Console = Backbone.Model.extend4000
     name: 'console'
-    initialize: -> @startTime = new Date().getTime()
+    initialize: -> @startTime = process.hrtime()[0]
     log: (logEvent) ->
-        console.log colors.green(new Date().getTime() - @startTime) + "\t" + colors.yellow(new Date()) + "\t\t" + colors.green(logEvent.tags.join(', ')) + "\t\t" + logEvent.message        
-
+        hrtime = process.hrtime()
+        console.log colors.green("#{hrtime[0]  - @startTime}.#{hrtime[1]}") + "\t" + colors.yellow(new Date()) + "\t\t" + colors.green(logEvent.tags.join(', ')) + "\t\t" + logEvent.message        
 
 Udp = exports.Udp = Backbone.Model.extend4000
     name: 'udp'
