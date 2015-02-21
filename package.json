@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/leshy/nodejs-logger2/issues"
   },
-  "homepage": "https://github.com/leshy/nodejs-logger2"
+  "homepage": "https://github.com/leshy/nodejs-logger2",
+  "dependencies": {
+    "udp-client": "^0.1.0"
+  }
 }
