@@ -1,6 +1,6 @@
 _ = require 'underscore'
 Backbone = require 'backbone4000'
-helpers = require 'helpers'
+h = require 'helpers'
 subscriptionMan = require('subscriptionman2')
 validator = require('validator2-extras'); v = validator.v
 colors = require 'colors'
@@ -22,12 +22,22 @@ settings =
 
 
 Logger = exports.Logger = subscriptionMan.basic.extend4000
-    initialize: ->
+    initialize: (settings = {}) ->
+        @settings = _.extend { }, settings
         @outputs = new Backbone.Collection()
         @subscribe true, (event) =>
             @outputs.each (output) -> output.log event
+
+        console.log 'settigs', @settings
+        if not @settings.outputs
+            @outputs.push new Console()
+        else
+            _.map @settings.outputs, (value,name) =>
+                @outputs.push new exports[name](value)
+
     
-    log: (msg, data = {}, tags...) -> 
+    log: (msg, data = {}, tags...) ->
+        _.map h.array(@settings.tags), (tag) -> tags.push tag
         logEntry = _.extend {}, { tags: tags, message: msg }, data
         @event logEntry
 
@@ -52,10 +62,4 @@ Udp = exports.Udp = Backbone.Model.extend4000
         @hostname = os.hostname()
     log: (logEvent) ->
         @gun.send new Buffer JSON.stringify _.extend { type: 'nodelogger', host: @hostname }, @settings.extendPacket or {}, logEvent
-
-
-
-
-        
-
         
