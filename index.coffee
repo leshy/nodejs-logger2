@@ -2,7 +2,6 @@ _ = require 'underscore'
 Backbone = require 'backbone4000'
 h = require 'helpers'
 subscriptionMan = require('subscriptionman2')
-validator = require('validator2-extras'); v = validator.v
 colors = require 'colors'
 UdpGun = require 'udp-client'
 os = require 'os'
