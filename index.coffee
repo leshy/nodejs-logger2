@@ -27,7 +27,6 @@ Logger = exports.Logger = subscriptionMan.basic.extend4000
         @subscribe true, (event) =>
             @outputs.each (output) -> output.log event
 
-        console.log 'settigs', @settings
         if not @settings.outputs
             @outputs.push new Console()
         else

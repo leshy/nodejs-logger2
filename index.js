@@ -44,7 +44,6 @@
           });
         };
       })(this));
-      console.log('settigs', this.settings);
       if (!this.settings.outputs) {
         return this.outputs.push(new Console());
       } else {
