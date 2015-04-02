@@ -17,6 +17,11 @@
   },
   "homepage": "https://github.com/leshy/nodejs-logger2",
   "dependencies": {
-    "udp-client": "^0.1.0"
+      "udp-client": "^0.1.0",
+      "subscriptionman2": "git://github.com/leshy/nodejs-subscriptionman2",
+      "colors": "1.0.3",
+      "underscore": "1.4.3",
+      "backbone-browserify": "0.9.2-1",
+      "helpers": "git://github.com/leshy/nodejs-helpers.git"
   }
 }
