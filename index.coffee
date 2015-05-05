@@ -35,6 +35,7 @@ Logger = exports.Logger = subscriptionMan.basic.extend4000
 
     
     log: (msg, data = {}, tags...) ->
+        tags = _.flatten(tags)
         _.map h.array(@settings.tags), (tag) -> tags.push tag
         logEntry = _.extend {}, { tags: tags, message: msg }, data
         @event logEntry

@@ -20,7 +20,7 @@
       "udp-client": "^0.1.0",
       "subscriptionman2": "git://github.com/leshy/nodejs-subscriptionman2",
       "colors": "1.0.3",
-      "underscore": "1.4.3",
+      "underscore": "^1.8.3",
       "backbone-browserify": "0.9.2-1",
       "helpers": "git://github.com/leshy/nodejs-helpers.git"
   }
