@@ -31,6 +31,7 @@
   };
 
   Logger = exports.Logger = subscriptionMan.basic.extend4000({
+    matchAll: true,
     initialize: function(settings) {
       if (settings == null) {
         settings = {};
@@ -38,6 +39,7 @@
       this.settings = _.extend({}, settings);
       this.context = this.parseContext(this.settings, this.settings.context || {});
       this.depth = this.settings.depth || 1;
+      this.parent = this.settings.parent;
       this.outputs = new Backbone.Collection();
       if (this.settings.outputs) {
         _.map(this.settings.outputs, (function(_this) {
@@ -54,7 +56,7 @@
             return output.log(event);
           });
           if (_this.parent) {
-            return _this.parent.event(event);
+            return _this.parent.log(event);
           }
         };
       })(this));
@@ -85,7 +87,8 @@
         if (!context.tags) {
           return all;
         } else {
-          return _.extend(all, h.makeDict(context.tags));
+          tags = h.makeDict(context.tags);
+          return _.extend(all, tags);
         }
       }), {});
       if (!_.isEmpty(tags)) {
@@ -104,21 +107,23 @@
       return context;
     },
     log: function() {
-      var context, contexts, logEntry, msg;
-      msg = arguments[0], contexts = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      if (msg == null) {
-        msg = "";
-      }
-      if (_.every(contexts.slice(1), function(context) {
-        return context.constructor === String;
-      })) {
-        contexts = {
-          data: contexts.shift(),
-          tags: contexts
-        };
+      var context, contexts, data, logEntry, msg;
+      contexts = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      if (contexts.length >= 3 && contexts[0].constructor === String && contexts[1].constructor === Object) {
+        if (_.every(contexts.slice(2), function(context) {
+          return context.constructor === String;
+        })) {
+          msg = contexts.shift();
+          data = contexts.shift();
+          data.msg = msg;
+          contexts = {
+            data: data,
+            tags: contexts
+          };
+        }
       }
       context = this.parseContext(this.context, contexts);
-      logEntry = _.extend({}, context);
+      logEntry = _.extend(context);
       return this.event(logEntry);
     }
   });

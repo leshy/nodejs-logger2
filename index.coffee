@@ -16,10 +16,14 @@ settings =
             host: os.hostname()
 
 Logger = exports.Logger = subscriptionMan.basic.extend4000
+    matchAll: true
+
     initialize: (settings = {}) ->
         @settings = _.extend {}, settings
+
         @context = @parseContext @settings, @settings.context or {}
         @depth = @settings.depth or 1
+        @parent = @settings.parent
 
         @outputs = new Backbone.Collection()
 
@@ -31,7 +35,7 @@ Logger = exports.Logger = subscriptionMan.basic.extend4000
 
         @subscribe true, (event) =>
             @outputs.each (output) -> output.log event
-            if @parent then @parent.event event
+            if @parent then @parent.log event
 
     child: (settings={}) ->
         settings = _.extend { parent: @, outputs: {}, depth: @depth + 1 }, settings
@@ -44,7 +48,9 @@ Logger = exports.Logger = subscriptionMan.basic.extend4000
 
         tags = _.reduce contexts, ((all, context) ->
             if not context.tags then return all
-            else  _.extend all, h.makeDict(context.tags)
+            else
+                tags = h.makeDict(context.tags)
+                _.extend all, tags
             ), {}
 
         if not _.isEmpty tags then context.tags = tags
@@ -58,14 +64,20 @@ Logger = exports.Logger = subscriptionMan.basic.extend4000
 
         context
 
-    log: (msg="", contexts...) ->
+    log: (contexts...) ->
+        #if msg.constructor is Object then return @event object
+
         # detect special input format in form of data, tags...
-        if _.every(contexts.slice(1), (context) -> context.constructor is String)
-            contexts = { data: contexts.shift(), tags: contexts }
+        if contexts.length >=3 and contexts[0].constructor is String and contexts[1].constructor is Object
+            if _.every(contexts.slice(2), (context) -> context.constructor is String)
+                msg = contexts.shift()
+                data = contexts.shift()
+                data.msg = msg
+                contexts = { data: data, tags: contexts }
 
         context = @parseContext @context, contexts
 
-        logEntry = _.extend {}, context
+        logEntry = _.extend context
         @event logEntry
 
 
