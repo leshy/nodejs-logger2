@@ -16,6 +16,3 @@ exports.udp = (test) ->
     logger.outputs.push new Logger.Udp()
     logger.log 'lalalla', { bla: 3 }, 'sag','sdgsag'
     test.done()
-
-
-    

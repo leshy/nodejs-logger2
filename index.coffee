@@ -7,38 +7,67 @@ UdpGun = require 'udp-client'
 os = require 'os'
 fs = require 'fs'
 
-settings =    
+settings =
     logstash:
         host: 'localhost'
         port: "6000"
         extendPacket:
             type: 'log',
             host: os.hostname()
-        
-#if fs.existsSync('./settings.js') then _.extend settings, require('./settings').settings
-
-#gun = new UdpGun settings.port, settings.host
-
 
 Logger = exports.Logger = subscriptionMan.basic.extend4000
     initialize: (settings = {}) ->
-        @settings = _.extend { }, settings
-        @outputs = new Backbone.Collection()
-        @subscribe true, (event) =>
-            @outputs.each (output) -> output.log event
+        @settings = _.extend {}, settings
+        @context = @parseContext @settings, @settings.context or {}
+        @depth = @settings.depth or 1
 
-        if not @settings.outputs
-            @outputs.push new Console()
-        else
+        @outputs = new Backbone.Collection()
+
+        if @settings.outputs
             _.map @settings.outputs, (value,name) =>
                 @outputs.push new exports[name](value)
 
-    
-    log: (msg, data = {}, tags...) ->
-        tags = _.flatten(tags)
-        _.map h.array(@settings.tags), (tag) -> tags.push tag
-        logEntry = _.extend {}, { tags: tags, message: msg }, data
+        else if @depth is 1 then @outputs.push new Console()
+
+        @subscribe true, (event) =>
+            @outputs.each (output) -> output.log event
+            if @parent then @parent.event event
+
+    child: (settings={}) ->
+        settings = _.extend { parent: @, outputs: {}, depth: @depth + 1 }, settings
+        return new Logger settings
+
+    parseContext: (contexts...) ->
+        contexts = _.map _.flatten(contexts), (context) -> if context.logContext then context.logContext() else context
+
+        context = {}
+
+        tags = _.reduce contexts, ((all, context) ->
+            if not context.tags then return all
+            else  _.extend all, h.makeDict(context.tags)
+            ), {}
+
+        if not _.isEmpty tags then context.tags = tags
+
+        data = _.reduce contexts, ((all, context) ->
+            if not context.data then return all
+            else _.extend all, context.data
+            ), {}
+
+        if not _.isEmpty data then context.data = data
+
+        context
+
+    log: (msg="", contexts...) ->
+        # detect special input format in form of data, tags...
+        if _.every(contexts.slice(1), (context) -> context.constructor is String)
+            contexts = { data: contexts.shift(), tags: contexts }
+
+        context = @parseContext @context, contexts
+
+        logEntry = _.extend {}, context
         @event logEntry
+
 
 Console = exports.Console = Backbone.Model.extend4000
     name: 'console'
@@ -46,12 +75,13 @@ Console = exports.Console = Backbone.Model.extend4000
     parseTags: (tags) ->
         _.map tags, (tag) ->
             if tag is 'fail' or tag is 'error' then return colors.red tag
-            if tag is 'pass' or tag is 'ok' then return colors.green tag                
+            if tag is 'pass' or tag is 'ok' then return colors.green tag
             return colors.yellow tag
+
     log: (logEvent) ->
         hrtime = process.hrtime()
         tags = @parseTags logEvent.tags
-        console.log colors.grey(new Date()) + "\t" + colors.green("#{hrtime[0]  - @startTime}.#{hrtime[1]}") + "\t " + tags.join(', ') + "\t⋅\t" + logEvent.message        
+        console.log colors.grey(new Date()) + "\t" + colors.green("#{hrtime[0]  - @startTime}.#{hrtime[1]}") + "\t " + tags.join(', ') + "\t⋅\t" + logEvent.message
 
 
 Udp = exports.Udp = Backbone.Model.extend4000
@@ -59,6 +89,6 @@ Udp = exports.Udp = Backbone.Model.extend4000
     initialize: (@settings = { host: 'localhost', port: 6000 } ) ->
         @gun = new UdpGun @settings.port, @settings.host
         @hostname = os.hostname()
+
     log: (logEvent) ->
         @gun.send new Buffer JSON.stringify _.extend { type: 'nodelogger', host: @hostname }, @settings.extendPacket or {}, logEvent
-        
